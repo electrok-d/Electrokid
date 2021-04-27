@@ -1,0 +1,46 @@
+.card {
+  /* width: auto;
+  height: auto; */
+  text-align: center;
+  padding: 15px;
+  margin: 10px 10px;
+  float: none;
+}
+
+.card-img-top {
+  border-radius: 13px;
+}
+
+.jumbotron {
+  padding: 2rem 1rem;
+  margin: 2rem auto;
+  background-color: #b7e3ff;
+  border-radius: 0.3rem;
+}
+
+.hidden {
+  display: none;
+}
+
+.visible {
+  display: block;
+}
+
+#robotwithin,
+#disorderly,
+#kboo,
+#whoadang {
+  width: 100%;
+}
+
+#liveAudioStream {
+  text-align: center;
+}
+
+/* #mixDecks {
+  z-index: 1;
+}
+
+#socialDecks {
+  z-index: 2;
+} */
