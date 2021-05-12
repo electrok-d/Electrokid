@@ -1,28 +1,73 @@
 'use strict';
 
-var sound;
+let sound;
+let playerName;
+let playerMixIndex;
+let mixIndex;
+let mix;
+
 const progressBarAnimation = () => {
-  console.log($('#progress').width());
   $('#progress').width();
   $('#progressBar').animate({ width: `${$('#progress').width()}px` }, { duration: sound.duration() * 1000, easing: 'linear' });
 };
 
-const Player = function (mix) {
-  this.mix = mix[0].file; // deal with playlist object
+const playerId = (x) => {
+  if (sound) sound.stop();
+  playerMixIndex = `${$(x).attr('value')}`;
+  playerName = `${$(x).attr('id')}`;
+  mixIndex = player.mixList[playerMixIndex].mixIndex; // This requires hitting play. FAIL
+
+  return [(player.playerName = playerName), (player.playerMixIndex = playerMixIndex), playerHtml(), loadButtonObjects()];
+};
+
+const playerHtml = () => {
+
+  $(`#${playerName}`).html(
+    "<button id='robotwithinLoadBTN' class='btn btn-primary hidden' type='button' disabled>" +
+    "<span class='spinner-border spinner-border-sm' role='status' aria-hidden='true'></span>" +
+    "Loading..." +
+    "</button>"
+    );
+
+  setTimeout(() => {
+    return $(`#${playerName}`).html(
+      "<div id='progress' class='progress' style='width: 100%'>" +
+        "<div id='progressBar' style='width: 0px'" +
+        "class='progress-bar progress-bar-striped progress-bar-animated ' role='progressbar'" +
+        "aria-valuenow='75' aria-valuemin='0' aria-valuemax='100'>" +
+        '</div>' +
+        '</div>' +
+        "<div class='btn-group-sm' role='group' aria-label='Basic outlined example'>" +
+        "<button id='seekBck' type='button' class='btn btn-outline-primary'>" +
+        '<< </button>' +
+        "<button id='play' type='button' class='btn btn-outline-primary' onclick='loadButtonObjects()'>Play</button>" +
+        "<button id='pause' type='button' class='btn btn-outline-primary' >Pause</button>" +
+        "<button id='seekFwd' type='button' class='btn btn-outline-primary' > >> </button>" +
+        '</div>' +
+        "<div id='counter'></div>"
+    )
+  }, 2000);
+};
+
+const Player = function (mixList, playerName, playerMixIndex) {
+  this.mixList = mixList;
+  this.playerName = playerName;
 };
 
 Player.prototype = {
   play: function () {
-    if (typeof sound === 'undefined') {
+    if (!sound || playerMixIndex !== mixIndex) { // This is a fautly way to do it
+      mix = this.mixList[`${mixIndex}`][`${playerName}`];
       sound = new Howl({
-        src: [`https://www.electrokid.com/audio/${this.mix}.mp3`],
+        src: [`https://www.electrokid.com/audio/${mix}.mp3`],
         html5: true,
+        pool: 5,
+        autoplay: false,
         onplay: function () {
           const convertTime = () => {
             const seconds = Math.floor(sound.seek());
             const minutes = Math.floor(sound.seek() / 60);
             const hours = Math.floor(minutes / 60);
-
             return `${hours < 10 ? '0' : ''}${hours}:${minutes < 10 ? '0' : ''}${minutes}:${seconds - minutes * 60 < 10 ? '0' : ''}${seconds < 60 ? seconds : seconds - minutes * 60}`;
           };
 
@@ -36,6 +81,7 @@ Player.prototype = {
           $('#progressBar').clearQueue();
           $('#progressBar').stop();
         },
+        onstop: function () {},
         onend: function () {
           console.log('Finished!');
         },
@@ -43,7 +89,7 @@ Player.prototype = {
 
       sound.play();
     } else {
-      sound.play();
+      if (sound.playing() !== true) sound.play();
     }
   },
   pause: function () {
@@ -58,39 +104,61 @@ Player.prototype = {
     const currentProgBarWidth = $('#progress').width();
     $('#progressBar').width(`${(currentProgBarWidth / sound.duration()) * sound.seek()}px`);
   },
+  stop: function () {
+    sound.stop();
+  },
 };
 
 const player = new Player([
   {
+    mixIndex: 0,
     title: 'Electrokid - The Robot Within',
-    file: 'electrokid_robotwithin_256kbps',
+    robotwithin: 'electrokid_robotwithin_256kbps',
     howl: null,
   },
   {
+    mixIndex: 1,
+    title: 'Jed Black - Disorderly Conduct Radio Show - April 6, 2016',
+    disorderly: 'Jed Black_Disorderly Conduct Radio_6April2016',
+    howl: null,
+  },
+  {
+    mixIndex: 2,
     title: 'Jed Black - Mixed live on Kboo Radio',
-    file: 'JedBlack_KbooRadio_Live_320kbps',
+    kboo: 'JedBlack_KbooRadio_Live_320kbps',
+    howl: null,
+  },
+  {
+    mixIndex: 3,
+    title: 'Electrokid - Live At Whoadang - November 15, 2013',
+    whoadang: 'Electrokid - Live at Whoadang - 15Nov2013',
     howl: null,
   },
 ]);
 
-$('#play').on('click', () => {
-  player.play();
-});
-
-$('#pause').on('click', () => {
-  player.pause();
-});
-
-$('#seekBck').mousedown(() => {
-  player.seek(-60);
-  $('#seekBck').mouseup(() => {
-    progressBarAnimation();
+function loadButtonObjects() {
+  $('#play').on('click', () => {
+    if (sound) {
+      player.stop();
+    }
+    player.play();
   });
-});
 
-$('#seekFwd').mousedown(() => {
-  player.seek(60);
-  $('#seekFwd').mouseup(() => {
-    progressBarAnimation();
+  $('#pause').on('click', () => {
+    player.pause();
   });
-});
+
+  $('#seekBck').mousedown(() => {
+    player.seek(-30);
+    $('#seekBck').mouseup(() => {
+      progressBarAnimation();
+    });
+  });
+
+  $('#seekFwd').mousedown(() => {
+    player.seek(30);
+    $('#seekFwd').mouseup(() => {
+      progressBarAnimation();
+    });
+  });
+}
